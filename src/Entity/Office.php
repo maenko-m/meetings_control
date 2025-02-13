@@ -27,6 +27,17 @@ class Office
     #[ORM\JoinColumn(name: 'organization_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
     private ?Organization $organization = null;
 
+    public function getTimeZone(): ?int
+    {
+        return $this->time_zone;
+    }
+
+    public function setTimeZone(?int $time_zone): static
+    {
+        $this->time_zone = $time_zone;
+
+        return $this;
+    }
     public function getId(): ?int
     {
         return $this->id;

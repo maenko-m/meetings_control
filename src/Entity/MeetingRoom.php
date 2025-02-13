@@ -4,6 +4,8 @@ namespace App\Entity;
 
 use App\Enum\Status;
 use App\Repository\MeetingRoomRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -22,7 +24,7 @@ class MeetingRoom
     private ?string $description = null;
 
     #[ORM\Column(type: 'integer')]
-    private int $calendar_code;
+    private ?int $calendar_code = null;
 
     #[ORM\Column(length: 512)]
     private ?string $photo_path = null;
@@ -36,6 +38,66 @@ class MeetingRoom
     #[ORM\ManyToOne(targetEntity: Office::class)]
     #[ORM\JoinColumn(name: 'office_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
     private ?Office $office = null;
+
+    #[ORM\Column(type: 'boolean')]
+    private bool $is_public = true;
+
+    #[ORM\ManyToMany(targetEntity: Employee::class)]
+    #[ORM\JoinTable(name: 'meeting_room_access')]
+    private Collection $employees;
+
+    public function __construct()
+    {
+        $this->employees = new ArrayCollection();
+    }
+
+    public function getIsPublic(): bool
+    {
+        return $this->is_public;
+    }
+
+    public function setIsPublic(bool $isPublic): static
+    {
+        $this->is_public = $isPublic;
+
+        if ($isPublic) {
+            $this->employees->clear();
+        }
+
+        return $this;
+    }
+
+    public function getEmployees(): Collection { return $this->employees; }
+
+    public function addEmployee(Employee $employee): static
+    {
+        if (!$this->is_public && !$this->employees->contains($employee)) {
+            $this->employees->add($employee);
+        }
+
+        return $this;
+    }
+
+    public function removeEmployee(Employee $employee): static
+    {
+        if (!$this->is_public) {
+            $this->employees->removeElement($employee);
+        }
+
+        return $this;
+    }
+
+    public function getCalendarCode(): int
+    {
+        return $this->calendar_code;
+    }
+
+    public function setCalendarCode(int $calendar_code): static
+    {
+        $this->calendar_code = $calendar_code;
+
+        return $this;
+    }
 
     public function getId(): ?int
     {
